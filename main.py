@@ -24,27 +24,40 @@ def run_server():
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
+# Твоя уникальная ссылка на Render
+WEB_APP_URL = "https://my-first-webapp-dro4.onrender.com"
+
+def setup_menu_button():
+    try:
+        # Настраиваем ту самую профессиональную кнопку слева от поля ввода
+        bot.set_chat_menu_button(
+            menu_button=telebot.types.MenuButtonWebApp(
+                type="web_app", 
+                text="Анкета 🚀", 
+                web_app=telebot.types.WebAppInfo(WEB_APP_URL)
+            )
+        )
+        print("Красивая кнопка меню успешно настроена!")
+    except Exception as e:
+        print(f"Не удалось настроить кнопку меню: {e}")
+
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    web_app_url = "https://my-first-webapp-dro4.onrender.com"
-    
-    web_app_info = telebot.types.WebAppInfo(web_app_url)
-    keyboard = telebot.types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    button = telebot.types.KeyboardButton(text="Открыть Web App 🚀", web_app=web_app_info)
-    keyboard.add(button)
+    # При старте принудительно даем команду скрыть обычную клавиатуру
+    remove_keyboard = telebot.types.ReplyKeyboardRemove()
     
     bot.send_message(
         message.chat.id, 
-        "Привет! Нажми на кнопку ниже, чтобы открыть мини-приложение и заполнить профиль:", 
-        reply_markup=keyboard
+        "Привет! Для открытия приложения используй кнопку **«Анкета 🚀»** в левом нижнем углу экрана (рядом с полем ввода).", 
+        reply_markup=remove_keyboard,
+        parse_mode='Markdown'
     )
 
 # Обработчик данных, которые приходят из формы авторизации Web App
 @bot.message_handler(content_types=['web_app_data'])
 def handle_web_app_data(message):
     try:
-        # Получаем строку JSON от Web App и превращаем в словарь Python
         data = json.loads(message.web_app_data.data)
         
         name = data.get('name')
@@ -52,7 +65,6 @@ def handle_web_app_data(message):
         weight = data.get('weight')
         goal = data.get('goal')
         
-        # Формируем красивый структурированный ответ
         response_text = (
             f"🎉 **Профиль успешно заполнен!**\n\n"
             f"👤 **Имя:** {name}\n"
@@ -62,7 +74,9 @@ def handle_web_app_data(message):
             f"Отличный старт! Все данные сохранены, теперь мы можем приступать к работе. 💪"
         )
         
-        bot.send_message(message.chat.id, response_text, parse_mode='Markdown')
+        # Важнейший момент: отправляем ответ и ЖЕСТКО удаляем обычную клавиатуру из кэша
+        remove_keyboard = telebot.types.ReplyKeyboardRemove()
+        bot.send_message(message.chat.id, response_text, reply_markup=remove_keyboard, parse_mode='Markdown')
         
     except Exception as e:
         bot.send_message(message.chat.id, f"Произошла ошибка при обработке анкеты: {e}")
@@ -72,6 +86,8 @@ def handle_web_app_data(message):
 # 3. Запуск всего приложения
 # ==========================================
 if __name__ == '__main__':
+    setup_menu_button()
+    
     server_thread = Thread(target=run_server)
     server_thread.start()
     
