@@ -82,11 +82,14 @@
     <button id="sendBtn">Сохранить данные</button>
 
     <script>
+        // Добавляем случайный параметр при инициализации, чтобы сбросить кеш Telegram
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
         document.getElementById('sendBtn').addEventListener('click', () => {
+            alert("Кнопка нажата! Начинаем отправку..."); // Тест клика
+
             const name = document.getElementById('name').value;
             const height = document.getElementById('height').value;
             const weight = document.getElementById('weight').value;
@@ -104,8 +107,13 @@
                 goal: goal
             };
 
-            // Жестко отправляем данные напрямую в Telegram чат
-            tg.sendData(JSON.stringify(data));
+            try {
+                alert("Отправляем через tg.sendData: " + JSON.stringify(data));
+                tg.sendData(JSON.stringify(data));
+                alert("Метод tg.sendData был вызван!");
+            } catch (error) {
+                alert("Критическая ошибка JS: " + error.message);
+            }
         });
     </script>
 </body>
