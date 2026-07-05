@@ -27,22 +27,32 @@ bot = telebot.TeleBot(BOT_TOKEN)
 # Твоя уникальная ссылка на Render
 WEB_APP_URL = "https://my-first-webapp-dro4.onrender.com"
 
+def setup_menu_button():
+    try:
+        # Устанавливаем кнопку меню, которая привязана к официальному Mini App
+        # Telegram разрешает отправку данных через tg.sendData() из ТАКОЙ кнопки меню!
+        bot.set_chat_menu_button(
+            menu_button=telebot.types.MenuButtonWebApp(
+                type="web_app", 
+                text="Анкета 🚀", 
+                web_app=telebot.types.WebAppInfo(WEB_APP_URL)
+            )
+        )
+        print("Официальная кнопка меню успешно настроена!")
+    except Exception as e:
+        print(f"Не удалось настроить кнопку меню: {e}")
+
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    # Принудительно очищаем старые обычные клавиатуры, если они где-то остались
+    # Убираем все старые Reply-клавиатуры
     remove_keyboard = telebot.types.ReplyKeyboardRemove(selective=False)
-    
-    # Создаем красивую Inline-кнопку под сообщением (данные из нее передаются отлично!)
-    inline_keyboard = telebot.types.InlineKeyboardMarkup()
-    web_app_info = telebot.types.WebAppInfo(WEB_APP_URL)
-    inline_button = telebot.types.InlineKeyboardButton(text="Заполнить анкету 🚀", web_app=web_app_info)
-    inline_keyboard.add(inline_button)
     
     bot.send_message(
         message.chat.id, 
-        "Привет! Нажми на кнопку ниже, чтобы открыть анкету и заполнить свой профиль. Это быстро и удобно! 👇", 
-        reply_markup=inline_keyboard
+        "Привет! Нажми на синюю кнопку **«Анкета 🚀»** в левом нижнем углу экрана, чтобы заполнить профиль. Теперь данные будут приходить моментально!", 
+        reply_markup=remove_keyboard,
+        parse_mode='Markdown'
     )
 
 # Обработчик данных, которые приходят из формы авторизации Web App
@@ -62,7 +72,7 @@ def handle_web_app_data(message):
             f"📏 **Рост:** {height} см\n"
             f"⚖️ **Вес:** {weight} кг\n"
             f"🎯 **Цель:** {goal}\n\n"
-            f"Всё сработало идеально, данные у меня! 💪"
+            f"Всё сработало идеально, интерфейс чистый! 💪"
         )
         
         bot.send_message(message.chat.id, response_text, parse_mode='Markdown')
@@ -75,6 +85,8 @@ def handle_web_app_data(message):
 # 3. Запуск всего приложения
 # ==========================================
 if __name__ == '__main__':
+    setup_menu_button()
+    
     server_thread = Thread(target=run_server)
     server_thread.start()
     
