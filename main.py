@@ -26,7 +26,7 @@ def start_message(message):
     # Создаем кнопку, которая откроет наше Web App
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     # ВАЖНО: ссылку на Web App мы заменим после деплоя на Render!
-    web_app_info = telebot.types.WebAppInfo("https://твой-сайт-на-render.onrender.com")
+    web_app_info = telebot.types.WebAppInfo("https://my-first-webapp-dro4.onrender.com")
     web_app_button = telebot.types.KeyboardButton(text="Открыть Web App 🚀", web_app=web_app_info)
     markup.add(web_app_button)
     
