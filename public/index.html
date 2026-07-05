@@ -97,33 +97,15 @@
                 return;
             }
 
-            // Собираем данные
             const data = {
-                userId: tg.initDataUnsafe?.user?.id || null, // ID пользователя в ТГ
                 name: name,
                 height: height,
                 weight: weight,
                 goal: goal
             };
 
-            // Отправляем данные обычным POST-запросом на наш сервер Render
-            fetch('/submit-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (response.ok) {
-                    tg.close(); // Закрываем мини-приложение после успешной отправки
-                } else {
-                    alert('Ошибка при отправке данных на сервер');
-                }
-            })
-            .catch(error => {
-                alert('Ошибка сети: ' + error);
-            });
+            // Отправляем данные напрямую в чат Telegram
+            tg.sendData(JSON.stringify(data));
         });
     </script>
 </body>
