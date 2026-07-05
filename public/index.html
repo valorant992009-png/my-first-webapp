@@ -7,47 +7,22 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #222222);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
-        .form-group {
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: var(--tg-theme-hint-color, #777777);
-        }
+        .form-group { width: 100%; max-width: 400px; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--tg-theme-hint-color, #777777); }
         input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
-            border-radius: 8px;
-            background-color: var(--tg-theme-secondary-bg-color, #fafafa);
-            color: var(--tg-theme-text-color, #222222);
-            box-sizing: border-box;
+            width: 100%; padding: 10px; border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 8px; background-color: var(--tg-theme-secondary-bg-color, #fafafa);
+            color: var(--tg-theme-text-color, #222222); box-sizing: border-box;
         }
         button {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            background-color: var(--tg-theme-button-color, #248bcf);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
+            width: 100%; max-width: 400px; padding: 12px; border: none; border-radius: 8px;
+            background-color: var(--tg-theme-button-color, #248bcf); color: var(--tg-theme-button-text-color, #ffffff);
+            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px;
         }
     </style>
 </head>
@@ -82,14 +57,11 @@
     <button id="sendBtn">Сохранить данные</button>
 
     <script>
-        // Добавляем случайный параметр при инициализации, чтобы сбросить кеш Telegram
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
         document.getElementById('sendBtn').addEventListener('click', () => {
-            alert("Кнопка нажата! Начинаем отправку..."); // Тест клика
-
             const name = document.getElementById('name').value;
             const height = document.getElementById('height').value;
             const weight = document.getElementById('weight').value;
@@ -100,20 +72,37 @@
                 return;
             }
 
+            // Telegram отдаёт данные пользователя ТОЛЬКО если приложение запущено официально
+            const user = tg.initDataUnsafe?.user;
+            
+            if (!user || !user.id) {
+                alert('Ошибка: Откройте приложение внутри Telegram чата бота, чтобы определился ваш ID.');
+                return;
+            }
+
             const data = {
+                userId: user.id,
                 name: name,
                 height: height,
                 weight: weight,
                 goal: goal
             };
 
-            try {
-                alert("Отправляем через tg.sendData: " + JSON.stringify(data));
-                tg.sendData(JSON.stringify(data));
-                alert("Метод tg.sendData был вызван!");
-            } catch (error) {
-                alert("Критическая ошибка JS: " + error.message);
-            }
+            fetch('/submit-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    tg.close(); // Закрываем окно Mini App после успеха
+                } else {
+                    alert('Ошибка сервера при сохранении данных.');
+                }
+            })
+            .catch(error => {
+                alert('Ошибка сети: ' + error);
+            });
         });
     </script>
 </body>
