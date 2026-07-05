@@ -24,35 +24,33 @@ def run_server():
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Твоя уникальная ссылка на Render
-WEB_APP_URL = "https://my-first-webapp-dro4.onrender.com"
-
-def setup_menu_button():
-    try:
-        # Устанавливаем кнопку меню, которая привязана к официальному Mini App
-        # Telegram разрешает отправку данных через tg.sendData() из ТАКОЙ кнопки меню!
-        bot.set_chat_menu_button(
-            menu_button=telebot.types.MenuButtonWebApp(
-                type="web_app", 
-                text="Анкета 🚀", 
-                web_app=telebot.types.WebAppInfo(WEB_APP_URL)
-            )
-        )
-        print("Официальная кнопка меню успешно настроена!")
-    except Exception as e:
-        print(f"Не удалось настроить кнопку меню: {e}")
+# ВАЖНО: Замени ' profile ' на то короткое имя (short name), 
+# которое ты указал в BotFather в самом конце создания /newapp (Шаг 8)
+APP_SHORT_NAME = "tetstss" 
 
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    # Убираем все старые Reply-клавиатуры
+    # Удаляем к чертям все застрявшие старые клавиатуры с экрана
     remove_keyboard = telebot.types.ReplyKeyboardRemove(selective=False)
+    
+    # Получаем имя бота динамически, чтобы собрать правильную ссылку
+    bot_username = bot.get_me().username
+    # Собираем официальную ссылку на Mini App (t.me/имя_бота/короткое_имя_приложения)
+    web_app_inline_url = f"https://t.me/{bot_username}/{APP_SHORT_NAME}"
+    
+    # Создаем ПРАВИЛЬНУЮ кнопку под сообщением, которая запускает Mini App, а не просто сайт
+    inline_keyboard = telebot.types.InlineKeyboardMarkup()
+    inline_button = telebot.types.InlineKeyboardButton(
+        text="Заполнить анкету 🚀", 
+        url=web_app_inline_url
+    )
+    inline_keyboard.add(inline_button)
     
     bot.send_message(
         message.chat.id, 
-        "Привет! Нажми на синюю кнопку **«Анкета 🚀»** в левом нижнем углу экрана, чтобы заполнить профиль. Теперь данные будут приходить моментально!", 
-        reply_markup=remove_keyboard,
-        parse_mode='Markdown'
+        "Привет! Нажми на кнопку ниже, чтобы открыть официальную анкету. Теперь данные прилетят 100%!", 
+        reply_markup=inline_keyboard
     )
 
 # Обработчик данных, которые приходят из формы авторизации Web App
@@ -72,23 +70,21 @@ def handle_web_app_data(message):
             f"📏 **Рост:** {height} см\n"
             f"⚖️ **Вес:** {weight} кг\n"
             f"🎯 **Цель:** {goal}\n\n"
-            f"Всё сработало идеально, интерфейс чистый! 💪"
+            f"Наконец-то всё сработало как надо! Связка запущена. 💪"
         )
         
         bot.send_message(message.chat.id, response_text, parse_mode='Markdown')
         
     except Exception as e:
-        bot.send_message(message.chat.id, f"Произошла ошибка при обработке анкеты: {e}")
+        bot.send_message(message.chat.id, f"Ошибка при обработке анкеты: {e}")
 
 
 # ==========================================
 # 3. Запуск всего приложения
 # ==========================================
 if __name__ == '__main__':
-    setup_menu_button()
-    
     server_thread = Thread(target=run_server)
     server_thread.start()
     
-    print("Бот запущен и готов к работе...")
+    print("Бот запущен...")
     bot.infinity_polling()
