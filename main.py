@@ -24,10 +24,9 @@ def run_server():
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Ссылка на твой сайт на Render
 WEB_APP_URL = "https://my-first-webapp-dro4.onrender.com"
 
-# Автоматически настраиваем синюю кнопку меню при запуске бота
+# Функция автоматической привязки веб-ссылки к синей кнопке «Анкета»
 def setup_menu_button():
     try:
         bot.set_chat_menu_button(
@@ -44,20 +43,21 @@ def setup_menu_button():
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    # Очищаем нижнюю клавиатуру, чтобы осталась ТОЛЬКО синяя кнопка меню
+    # Полностью убираем нижнюю клавиатуру сообщений (ReplyKeyboardMarkup)
     remove_keyboard = telebot.types.ReplyKeyboardRemove(selective=False)
     
     bot.send_message(
         message.chat.id, 
-        "Привет! Нажми на синюю кнопку **«Анкета 🚀»** в левом нижнем углу (рядом с полем ввода), чтобы заполнить профиль.", 
+        "Привет! Нажми на синюю кнопку **«Анкета 🚀»** слева от поля ввода текста.", 
         reply_markup=remove_keyboard,
         parse_mode='Markdown'
     )
 
-# Сюда прилетят данные, когда ты нажмешь "Сохранить данные" в приложении
+# ЛОВИМ ДАННЫЕ ИЗ МИНИ-ПРИЛОЖЕНИЯ
 @bot.message_handler(content_types=['web_app_data'])
 def handle_web_app_data(message):
     try:
+        # Десериализуем строку JSON, прилетевшую из tg.sendData
         data = json.loads(message.web_app_data.data)
         
         name = data.get('name')
@@ -71,7 +71,7 @@ def handle_web_app_data(message):
             f"📏 **Рост:** {height} см\n"
             f"⚖️ **Вес:** {weight} кг\n"
             f"🎯 **Цель:** {goal}\n\n"
-            f"Всё сработало идеально! 💪"
+            f"Данные получены через tg.sendData() из синей кнопки! Экраны синхронизированы. 🚀"
         )
         
         bot.send_message(message.chat.id, response_text, parse_mode='Markdown')
@@ -89,5 +89,5 @@ if __name__ == '__main__':
     server_thread = Thread(target=run_server)
     server_thread.start()
     
-    print("Бот запущен...")
+    print("Приложение успешно запущено...")
     bot.infinity_polling()
