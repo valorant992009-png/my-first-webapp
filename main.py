@@ -4,12 +4,14 @@ import telebot
 from threading import Thread
 
 # 1. Настройка веб-сервера (Flask)
-app = Flask(__name__)
+import os
+
+# Указываем Flask явный путь к папке public
+app = Flask(__name__, static_folder='public', static_url_path='')
 
 @app.route('/')
 def index():
-    # Отдаем нашу веб-страницу из папки public
-    return send_from_directory('public', 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 def run_server():
     # Render автоматически передает порт в переменную окружения PORT
