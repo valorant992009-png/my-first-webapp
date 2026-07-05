@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация в Web App</title>
+    <title>Заполнение профиля</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -12,135 +12,119 @@
             color: var(--tg-theme-text-color, #222222);
             margin: 0;
             padding: 20px;
-            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
-        .form-container {
+        .form-group {
+            width: 100%;
             max-width: 400px;
-            margin: 0 auto;
+            margin-bottom: 15px;
         }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: var(--tg-theme-hint-color, #777777);
-            font-size: 1.4rem;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--tg-theme-hint-color, #777777);
         }
-
         input, select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid var(--tg-theme-hint-color, #ccc);
             border-radius: 8px;
-            background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            background-color: var(--tg-theme-secondary-bg-color, #fafafa);
             color: var(--tg-theme-text-color, #222222);
-            font-size: 1rem;
             box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
         }
-
-        input:focus, select:focus {
-            border-color: var(--tg-theme-button-color, #2481cc);
-        }
-
-        .btn-submit {
+        button {
             width: 100%;
-            padding: 14px;
-            background-color: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            max-width: 400px;
+            padding: 12px;
             border: none;
             border-radius: 8px;
-            font-size: 1.1rem;
+            background-color: var(--tg-theme-button-color, #248bcf);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .btn-submit:active {
-            opacity: 0.85;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 
-<div class="form-container">
     <h2>Заполнение профиля</h2>
-    
-    <div class="input-group">
+
+    <div class="form-group">
         <label for="name">Ваше имя</label>
-        <input type="text" id="name" placeholder="Введите имя" required>
+        <input type="text" id="name" placeholder="Введите имя">
     </div>
 
-    <div class="input-group">
+    <div class="form-group">
         <label for="height">Рост (см)</label>
-        <input type="number" id="height" placeholder="Например, 175" min="100" max="250" required>
+        <input type="number" id="height" placeholder="Например, 175">
     </div>
 
-    <div class="input-group">
+    <div class="form-group">
         <label for="weight">Вес (кг)</label>
-        <input type="number" id="weight" placeholder="Например, 70" min="30" max="300" required>
+        <input type="number" id="weight" placeholder="Например, 70">
     </div>
 
-    <div class="input-group">
+    <div class="form-group">
         <label for="goal">Главная цель</label>
         <select id="goal">
             <option value="Похудение">Похудение</option>
-            <option value="Набор массы">Набор мышечной массы</option>
-            <option value="Поддержание формы">Поддержание формы / Здоровье</option>
-            <option value="Выносливость">Развитие выносливости</option>
+            <option value="Набор массы">Набор массы</option>
+            <option value="Поддержание формы">Поддержание формы</option>
         </select>
     </div>
 
-    <button class="btn-submit" id="sendDataBtn">Сохранить данные</button>
-</div>
+    <button id="sendBtn">Сохранить данные</button>
 
-<script>
-    // Инициализируем объект Telegram WebApp
-    const tg = window.Telegram.WebApp;
-    
-    // Расширяем приложение на весь экран телефона
-    tg.expand();
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-    const sendBtn = document.getElementById('sendDataBtn');
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            const name = document.getElementById('name').value;
+            const height = document.getElementById('height').value;
+            const weight = document.getElementById('weight').value;
+            const goal = document.getElementById('goal').value;
 
-    sendBtn.addEventListener('click', () => {
-        const name = document.getElementById('name').value.trim();
-        const height = document.getElementById('height').value;
-        const weight = document.getElementById('weight').value;
-        const goal = document.getElementById('goal').value;
+            if (!name || !height || !weight) {
+                alert('Пожалуйста, заполните все поля!');
+                return;
+            }
 
-        // Простая валидация полей
-        if (!name || !height || !weight) {
-            alert('Пожалуйста, заполните все поля!');
-            return;
-        }
+            // Собираем данные
+            const data = {
+                userId: tg.initDataUnsafe?.user?.id || null, // ID пользователя в ТГ
+                name: name,
+                height: height,
+                weight: weight,
+                goal: goal
+            };
 
-        // Собираем данные в один объект
-        const userData = {
-            name: name,
-            height: height,
-            weight: weight,
-            goal: goal
-        };
-
-        // Отправляем данные обратно боту в виде JSON-строки
-        tg.sendData(JSON.stringify(userData));
-        
-        // Закрываем Web App после отправки
-        tg.close();
-    });
-</script>
+            // Отправляем данные обычным POST-запросом на наш сервер Render
+            fetch('/submit-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    tg.close(); // Закрываем мини-приложение после успешной отправки
+                } else {
+                    alert('Ошибка при отправке данных на сервер');
+                }
+            })
+            .catch(error => {
+                alert('Ошибка сети: ' + error);
+            });
+        });
+    </script>
 </body>
 </html>
